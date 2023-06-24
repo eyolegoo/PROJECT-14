@@ -294,7 +294,7 @@ pipeline {
 6. Eventually, your main branch should have a successful pipeline like this in blue ocean
 ```
 
-<img width="588" alt="20" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/0364f19e-252d-4aa9-9ad9-1b8e471fb5e9">
+<img width="960" alt="JenkinsPlaybook ran successfully" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/857c8682-0a86-4e64-b3b2-a6523d0589a0">
 
 
 ## ***RUNNING ANSIBLE PLAYBOOK FROM JENKINS***
