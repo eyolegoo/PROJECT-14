@@ -389,4 +389,63 @@ pipeline {
 
 <img width="564" alt="23" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/e281997e-eee0-4b2e-8ec2-6381af7e26d2">
 
-- Add another parameter. This time, introduce **tagging** in Ansible. You can limit the Ansible execution to a specific role or playbook desired. Therefore, add an Ansible tag to run against webserver only. Test this locally first to get the experience. Once you understand this, update **Jenkinsfile** and run it from Jenkins.
+- Add another parameter. This time, introduce **tagging** in Ansible. You can limit the Ansible execution to a specific role or playbook desired. Therefore, add an Ansible tag to run against **webserver** only. Test this locally first to get the experience. Once you understand this, update **Jenkinsfile** and run it from Jenkins.
+
+
+## ***CI/CD PIPELINE FOR TODO APPLICATION***
+
+- We already have **tooling** website as a part of deployment through Ansible. Here we will introduce another PHP application to add to the list of software products we are managing in our infrastructure. The good thing with this particular application is that it has unit tests, and it is an ideal application to show an end-to-end CI/CD pipeline for a particular application.
+
+- Our goal here is to deploy the application onto servers directly from **Artifactory** rather than from **git**. If you have not updated Ansible with an Artifactory role, simply use this guide to create an Ansible role for Artifactory (ignore the Nginx part). [Configure Artifactory on Ubuntu 20.04](https://www.howtoforge.com/tutorial/ubuntu-jfrog/)
+
+**Phase 1 – Prepare Jenkins**
+
+1. - Fork the repository into your GitHub account `https://github.com/darey-devops/php-todo.git`
+
+2. - On you Jenkins server, install PHP, its dependencies and [Composer tool](https://getcomposer.org/) (Feel free to do this manually at first, then update your Ansible accordingly later)
+  
+- For ubuntu ` sudo apt install -y zip libapache2-mod-php phploc php-{xml,bcmath,bz2,intl,gd,mbstring,mysql,zip}`
+
+- For RedHat
+
+```
+yum module reset php -y
+yum module enable php:remi-7.4 -y
+yum install -y php php-common php-mbstring php-opcache php-intl php-xml php-gd php-curl php-mysqlnd php-fpm php-json
+systemctl start php-fpm
+systemctl enable php-fpm
+```
+
+<img width="767" alt="PHP active and running on Jenkins server" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/b3561740-de2e-4854-b3e3-09677beff761">
+
+3. - Install Jenkins plugins
+
+  - 1. [Plot plugin](https://plugins.jenkins.io/plot/)
+  - 2. [Artifactory plugin](https://jfrog.com/help/r/jfrog-integrations-documentation/jenkins-artifactory-plug-in)
+
+
+    - We will use **plot** plugin to display tests reports, and code coverage information.
+    - The **Artifactory** plugin will be used to easily upload code artifacts into an Artifactory server.
+
+4. - In Jenkins UI configure Artifactory
+  
+<img width="603" alt="24" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/2de254c8-d051-4f4d-9181-716352fa8010">
+
+- Configure the server ID, URL and Credentials, run Test Connection.
+
+<img width="579" alt="25" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/363cd614-a783-47c3-be39-30bba581d89f">
+
+
+**Phase 2 – Integrate Artifactory repository with Jenkins**
+
+1. - Create a dummy **Jenkinsfile** in the repository
+
+2. - Using Blue Ocean, create a multibranch Jenkins pipeline
+
+3. - On the database server, create database and user
+  
+```
+Create database homestead;
+CREATE USER 'homestead'@'%' IDENTIFIED BY 'sePret^i';
+GRANT ALL PRIVILEGES ON * . * TO 'homestead'@'%';
+```
