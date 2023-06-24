@@ -204,4 +204,94 @@ pipeline {
 
 - Now go back into the Ansible pipeline in Jenkins, and select configure
 
-- 
+<img width="610" alt="11" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/691a573c-c4af-4a2c-a04f-068044dc83ce">
+
+- Scroll down to **Build Configuration** section and specify the location of the Jenkinsfile at **deploy/Jenkinsfile**
+
+<img width="538" alt="12" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/e706f543-12b0-4166-b9c3-b256820f0367">
+
+- Back to the pipeline again, this time click "Build now"
+
+<img width="575" alt="13" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/d6015e15-58ce-40b7-86c9-11db81c69db4">
+
+- This will trigger a build and you will be able to see the effect of our basic **Jenkinsfile** configuration by going through the console output of the build.
+
+- To really appreciate and feel the difference of Cloud Blue UI, it is recommended to try triggering the build again from Blue Ocean interface.
+
+- 1. Click on Blue Ocean
+ 
+<img width="572" alt="14" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/bcd39c2a-f1b4-4f6f-ab50-6e19c27223a6">
+
+- 2. Select your project
+
+- 3. Click on the play button against the branch
+
+<img width="574" alt="15" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/eb59e767-f58d-4b53-8328-5c589b26488d">
+
+- Notice that this pipeline is a multibranch one. This means, if there were more than one branch in GitHub, Jenkins would have scanned the repository to discover them all and we would have been able to trigger a build for each branch.
+
+Let us see this in action.
+
+  - Create a new git branch and name it **feature/jenkinspipeline-stages**
+
+  - Currently we only have the **Build** stage. Let us add another stage called **Test**. Paste the code snippet below and push the new changes to GitHub.
+
+```
+pipeline {
+    agent any
+
+  stages {
+    stage('Build') {
+      steps {
+        script {
+          sh 'echo "Building Stage"'
+        }
+      }
+    }
+
+    stage('Test') {
+      steps {
+        script {
+          sh 'echo "Testing Stage"'
+        }
+      }
+    }
+    }
+}
+
+
+```
+
+- 4. To make your new branch show up in Jenkins, we need to tell Jenkins to scan the repository.
+ 
+   - Click on the "Administration" button
+ 
+<img width="554" alt="16" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/80f6f6d0-2f39-490a-bd92-cbbbac6c9003">
+
+   - Navigate to the Ansible project and click on "Scan repository now"
+
+<img width="567" alt="17" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/9de1c6f7-9ec2-4cc4-80e9-8d9467bdab61">
+
+   - Refresh the page and both branches will start building automatically. You can go into Blue Ocean and see both branches there too.
+
+<img width="557" alt="18" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/f351b493-d2fd-423a-9b89-4339085d86ab">
+
+  - In Blue Ocean, you can now see how the Jenkinsfile has caused a new step in the pipeline launch build for the new branch.
+
+<img width="559" alt="19" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/26377863-d403-4e28-ab08-5a7f56865f0f">
+
+- ***A QUICK TASK FOR YOU!***
+
+```
+1. Create a pull request to merge the latest code into the main branch
+2. After merging the PR, go back into your terminal and switch into the main branch.
+3. Pull the latest change.
+4. Create a new branch, add more stages into the Jenkins file to simulate below phases. (Just add an echo command like we have in build and test stages)
+   1. Package 
+   2. Deploy 
+   3. Clean up
+5. Verify in Blue Ocean that all the stages are working, then merge your feature branch to the main branch
+6. Eventually, your main branch should have a successful pipeline like this in blue ocean
+```
+
+<img width="588" alt="20" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/0364f19e-252d-4aa9-9ad9-1b8e471fb5e9">
