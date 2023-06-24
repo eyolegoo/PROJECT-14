@@ -294,7 +294,9 @@ pipeline {
 6. Eventually, your main branch should have a successful pipeline like this in blue ocean
 ```
 
-<img width="960" alt="JenkinsPlaybook ran successfully" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/857c8682-0a86-4e64-b3b2-a6523d0589a0">
+<img width="802" alt="More pipeline stagess" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/123b2d0f-2f35-4468-9134-882c572c51d9">
+
+<img width="758" alt="000" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/5c1f7756-c850-4e25-ad7c-e21ecbb9ccab">
 
 
 ## ***RUNNING ANSIBLE PLAYBOOK FROM JENKINS***
@@ -332,6 +334,13 @@ pipeline {
   
 3. - Another possible reason for Jenkins failure sometimes, is because you have indicated in the **Jenkinsfile** to check out the **main** git branch, and you are running a pipeline from another branch. So, always verify by logging onto the Jenkins box to check the workspace, and run **git branch** command to confirm that the branch you are expecting is there.
   
+<img width="960" alt="JenkinsPlaybook ran successfully" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/3b749039-7899-4cd0-9f89-ac2e634feec9">
+
+<img width="898" alt="NGINX_MYSQL 1" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/f30c28e3-29ab-4eec-bdc9-31e53824e2aa">
+
+<img width="657" alt="NGINX_MYSQL 2" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/ff45bf44-b77c-42fb-9ccc-b0b4c74762bb">
+
+
 - If everything goes well for you, it means, the **Dev** environment has an up-to-date configuration. But what if we need to deploy to other environments?
 
   - Are we going to manually update the **Jenkinsfile** to point inventory to those environments? such as **sit, uat, pentest**, etc.
@@ -427,6 +436,13 @@ systemctl enable php-fpm
     - We will use **plot** plugin to display tests reports, and code coverage information.
     - The **Artifactory** plugin will be used to easily upload code artifacts into an Artifactory server.
 
+<img width="954" alt="Artifactory 1" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/8e4c8a00-cb1e-4940-ab7a-73ce8d012b1b">
+
+<img width="909" alt="Artifactory 2" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/4a24dd0d-00b9-434f-91ac-b36626fcbccc">
+
+<img width="959" alt="Artifactory webpage" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/8e9a2b43-3609-4d2d-a44d-e95a65b616ec">
+
+    
 4. - In Jenkins UI configure Artifactory
   
 <img width="603" alt="24" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/2de254c8-d051-4f4d-9181-716352fa8010">
@@ -449,3 +465,178 @@ Create database homestead;
 CREATE USER 'homestead'@'%' IDENTIFIED BY 'sePret^i';
 GRANT ALL PRIVILEGES ON * . * TO 'homestead'@'%';
 ```
+
+4. - Update the database connectivity requirements in the file .env.sample
+
+<img width="526" alt="database details" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/945078d5-308c-4aef-a85c-2e93e0eff855">
+
+<img width="915" alt="Mysql database Jenkins 1" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/11104674-ce8e-41ea-b7a8-dc99f6e05e0b">
+
+<img width="898" alt="Mysql database Jenkins 2" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/840c8dd2-3ccb-4d42-9266-5861544d282d">
+
+5. - Update Jenkinsfile with proper pipeline configuration
+
+```
+pipeline {
+    agent any
+
+  stages {
+
+     stage("Initial cleanup") {
+          steps {
+            dir("${WORKSPACE}") {
+              deleteDir()
+            }
+          }
+        }
+
+    stage('Checkout SCM') {
+      steps {
+            git branch: 'main', url: 'https://github.com/darey-devops/php-todo.git'
+      }
+    }
+
+    stage('Prepare Dependencies') {
+      steps {
+             sh 'mv .env.sample .env'
+             sh 'composer install'
+             sh 'php artisan migrate'
+             sh 'php artisan db:seed'
+             sh 'php artisan key:generate'
+      }
+    }
+  }
+}
+```
+
+<img width="950" alt="Jenkinsfile pipeline configuration for php-todo" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/0cf6c5a3-f3af-451f-8538-9fe082fe4a07">
+
+
+- Notice the **Prepare Dependencies** section
+
+   - The required file by ***PHP*** is ***.env*** so we are renaming ***.env.sample*** to ***.env***
+   - Composer is used by PHP to install all the dependent libraries used by the application
+   - ***php artisan*** uses the ***.env*** file to setup the required database objects – (After successful run of this step, login to the database, run ***show tables*** and you will see the tables being created for you)
+ 
+<img width="536" alt="mysql" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/0855b18a-ae9a-46c4-a7b5-3076a2304f0d">
+
+- 1. Update the Jenkinsfile to include Unit tests step
+ 
+```
+stage('Execute Unit Tests') {
+      steps {
+             sh './vendor/bin/phpunit'
+      } 
+```
+
+<img width="761" alt="0000" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/d1bc316e-9a07-4497-bf7c-ec60b62c57b8">
+
+
+**Phase 3 – Code Quality Analysis**
+
+- This is one of the areas where developers, architects and many stakeholders are mostly interested in as far as product development is concerned. As a DevOps engineer, you also have a role to play. Especially when it comes to setting up the tools.
+
+- For **PHP** the most commonly tool used for code quality analysis is [phploc](https://phpqa.io/projects/phploc.html). [Read the article here for more](https://matthiasnoback.nl/2019/09/using-phploc-for-quick-code-quality-estimation-part-1/)
+
+- The data produced by **phploc** can be ploted onto graphs in Jenkins.
+
+1. - Add the code analysis step in **Jenkinsfile**. The output of the data will be saved in **build/logs/phploc.csv** file.
+  
+```
+stage('Code Analysis') {
+  steps {
+        sh 'phploc app/ --log-csv build/logs/phploc.csv'
+
+  }
+}
+```
+
+2. - Plot the data using **plot** Jenkins plugin.
+
+- This plugin provides generic plotting (or graphing) capabilities in Jenkins. It will plot one or more single values variations across builds in one or more plots. Plots for a particular job (or project) are configured in the job configuration screen, where each field has additional help information. Each plot can have one or more lines (called data series). After each build completes the plots’ data series latest values are pulled from the CSV file generated by **phploc**.
+
+```
+stage('Plot Code Coverage Report') {
+      steps {
+
+            plot csvFileName: 'plot-396c4a6b-b573-41e5-85d8-73613b2ffffb.csv', csvSeries: [[displayTableFlag: false, exclusionValues: 'Lines of Code (LOC),Comment Lines of Code (CLOC),Non-Comment Lines of Code (NCLOC),Logical Lines of Code (LLOC)                          ', file: 'build/logs/phploc.csv', inclusionFlag: 'INCLUDE_BY_STRING', url: '']], group: 'phploc', numBuilds: '100', style: 'line', title: 'A - Lines of code', yaxis: 'Lines of Code'
+            plot csvFileName: 'plot-396c4a6b-b573-41e5-85d8-73613b2ffffb.csv', csvSeries: [[displayTableFlag: false, exclusionValues: 'Directories,Files,Namespaces', file: 'build/logs/phploc.csv', inclusionFlag: 'INCLUDE_BY_STRING', url: '']], group: 'phploc', numBuilds: '100', style: 'line', title: 'B - Structures Containers', yaxis: 'Count'
+            plot csvFileName: 'plot-396c4a6b-b573-41e5-85d8-73613b2ffffb.csv', csvSeries: [[displayTableFlag: false, exclusionValues: 'Average Class Length (LLOC),Average Method Length (LLOC),Average Function Length (LLOC)', file: 'build/logs/phploc.csv', inclusionFlag: 'INCLUDE_BY_STRING', url: '']], group: 'phploc', numBuilds: '100', style: 'line', title: 'C - Average Length', yaxis: 'Average Lines of Code'
+            plot csvFileName: 'plot-396c4a6b-b573-41e5-85d8-73613b2ffffb.csv', csvSeries: [[displayTableFlag: false, exclusionValues: 'Cyclomatic Complexity / Lines of Code,Cyclomatic Complexity / Number of Methods ', file: 'build/logs/phploc.csv', inclusionFlag: 'INCLUDE_BY_STRING', url: '']], group: 'phploc', numBuilds: '100', style: 'line', title: 'D - Relative Cyclomatic Complexity', yaxis: 'Cyclomatic Complexity by Structure'      
+            plot csvFileName: 'plot-396c4a6b-b573-41e5-85d8-73613b2ffffb.csv', csvSeries: [[displayTableFlag: false, exclusionValues: 'Classes,Abstract Classes,Concrete Classes', file: 'build/logs/phploc.csv', inclusionFlag: 'INCLUDE_BY_STRING', url: '']], group: 'phploc', numBuilds: '100', style: 'line', title: 'E - Types of Classes', yaxis: 'Count'
+            plot csvFileName: 'plot-396c4a6b-b573-41e5-85d8-73613b2ffffb.csv', csvSeries: [[displayTableFlag: false, exclusionValues: 'Methods,Non-Static Methods,Static Methods,Public Methods,Non-Public Methods', file: 'build/logs/phploc.csv', inclusionFlag: 'INCLUDE_BY_STRING', url: '']], group: 'phploc', numBuilds: '100', style: 'line', title: 'F - Types of Methods', yaxis: 'Count'
+            plot csvFileName: 'plot-396c4a6b-b573-41e5-85d8-73613b2ffffb.csv', csvSeries: [[displayTableFlag: false, exclusionValues: 'Constants,Global Constants,Class Constants', file: 'build/logs/phploc.csv', inclusionFlag: 'INCLUDE_BY_STRING', url: '']], group: 'phploc', numBuilds: '100', style: 'line', title: 'G - Types of Constants', yaxis: 'Count'
+            plot csvFileName: 'plot-396c4a6b-b573-41e5-85d8-73613b2ffffb.csv', csvSeries: [[displayTableFlag: false, exclusionValues: 'Test Classes,Test Methods', file: 'build/logs/phploc.csv', inclusionFlag: 'INCLUDE_BY_STRING', url: '']], group: 'phploc', numBuilds: '100', style: 'line', title: 'I - Testing', yaxis: 'Count'
+            plot csvFileName: 'plot-396c4a6b-b573-41e5-85d8-73613b2ffffb.csv', csvSeries: [[displayTableFlag: false, exclusionValues: 'Logical Lines of Code (LLOC),Classes Length (LLOC),Functions Length (LLOC),LLOC outside functions or classes ', file: 'build/logs/phploc.csv', inclusionFlag: 'INCLUDE_BY_STRING', url: '']], group: 'phploc', numBuilds: '100', style: 'line', title: 'AB - Code Structure by Logical Lines of Code', yaxis: 'Logical Lines of Code'
+            plot csvFileName: 'plot-396c4a6b-b573-41e5-85d8-73613b2ffffb.csv', csvSeries: [[displayTableFlag: false, exclusionValues: 'Functions,Named Functions,Anonymous Functions', file: 'build/logs/phploc.csv', inclusionFlag: 'INCLUDE_BY_STRING', url: '']], group: 'phploc', numBuilds: '100', style: 'line', title: 'H - Types of Functions', yaxis: 'Count'
+            plot csvFileName: 'plot-396c4a6b-b573-41e5-85d8-73613b2ffffb.csv', csvSeries: [[displayTableFlag: false, exclusionValues: 'Interfaces,Traits,Classes,Methods,Functions,Constants', file: 'build/logs/phploc.csv', inclusionFlag: 'INCLUDE_BY_STRING', url: '']], group: 'phploc', numBuilds: '100', style: 'line', title: 'BB - Structure Objects', yaxis: 'Count'
+
+      }
+    }
+```
+
+- You should now see a **Plot** menu item on the left menu. Click on it to see the charts. (The analytics may not mean much to you as it is meant to be read by developers. So, you need not worry much about it – this is just to give you an idea of the real-world implementation).
+
+<img width="763" alt="00000" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/f97623ce-99c4-4e43-93e9-4699794a74c2">
+
+
+3. - Bundle the application code for into an artifact (archived package) upload to Artifactory
+  
+```
+stage ('Package Artifact') {
+    steps {
+            sh 'zip -qr php-todo.zip ${WORKSPACE}/*'
+     }
+    }
+```
+
+4. - Publish the resulted artifact into Artifactory
+
+```
+stage ('Upload Artifact to Artifactory') {
+          steps {
+            script { 
+                 def server = Artifactory.server 'artifactory-server'                 
+                 def uploadSpec = """{
+                    "files": [
+                      {
+                       "pattern": "php-todo.zip",
+                       "target": "<name-of-artifact-repository>/php-todo",
+                       "props": "type=zip;status=ready"
+
+                       }
+                    ]
+                 }""" 
+
+                 server.upload spec: uploadSpec
+               }
+            }
+
+        }
+```
+
+<img width="958" alt="Jenkins pipeline artifact into artifactory" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/4d40e175-346a-4193-8a6b-f96ca9cb3e6e">
+
+
+5. - Deploy the application to the dev environment by launching Ansible pipeline
+  
+```
+stage ('Deploy to Dev Environment') {
+    steps {
+    build job: 'ansible-project/main', parameters: [[$class: 'StringParameterValue', name: 'env', value: 'dev']], propagate: false, wait: true
+    }
+  }
+```
+
+<img width="960" alt="Todo" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/851b0abb-c92d-402d-b394-64a90403fc5f">
+
+<img width="931" alt="Todo to dev in ansible 1" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/72ca3043-da04-4f36-a955-b96136f4b66b">
+
+<img width="828" alt="Todo to dev in ansible 2" src="https://github.com/eyolegoo/PROJECT-14/assets/115954100/047f9b6e-1d81-4f1d-b7b0-cd5b5e44025f">
+
+
+- The **build job** used in this step tells Jenkins to start another job. In this case it is the **ansible-project** job, and we are targeting the **main** branch. Hence, we have **ansible-project/main**. Since the Ansible project requires parameters to be passed in, we have included this by specifying the **parameters** section. The name of the parameter is env and its value is **dev**. Meaning, deploy to the Development environment.
+
+- But how are we certain that the code being deployed has the quality that meets corporate and customer requirements? Even though we have implemented **Unit Tests** and **Code Coverage** Analysis with **phpunit** and **phploc**, we still need to implement **Quality Gate** to ensure that ONLY code with the required code coverage, and other quality standards make it through to the environments.
+
+- To achieve this, we need to configure **SonarQube** – An open-source platform developed by **SonarSource** for continuous inspection of code quality to perform automatic reviews with static analysis of code to detect bugs, code smells, and security vulnerabilities.
